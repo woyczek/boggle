@@ -14,7 +14,7 @@ class Boggle
     @starts = {}
     @board.each_with_index do |row, i|
       row.each_with_index do |c, j|
-        @starts[c] ||= Set.new
+        @starts[c] ||= []
         @starts[c] << [i, j]
       end
     end
@@ -45,7 +45,7 @@ class Boggle
 
   def dfs(word, x, y, idx = 1, seen = Set.new)
     coord = :"#{x}#{y}"
-    seen.add(coord)
+    seen << coord
 
     return true if idx == word.length
 
