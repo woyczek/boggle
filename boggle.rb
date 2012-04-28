@@ -22,6 +22,17 @@ class Boggle
     @possible = Regexp.new("^[#{@raw.split('').uniq!.join}]{3,#{@raw.length}}$")
   end
 
+  def solve
+    results = []
+    File.new("/usr/share/dict/words", "r").each_line do |w|
+      word = w.chomp
+      results << word if has_word?(word)
+    end
+    results
+  end
+
+  private
+
   def has_word?(word)
     return false unless word =~ @possible
 
@@ -54,15 +65,6 @@ class Boggle
     seen.delete(coord)
 
     false
-  end
-
-  def solve
-    results = []
-    File.new("/usr/share/dict/words", "r").each_line do |w|
-      word = w.chomp
-      results << word if has_word?(word)
-    end
-    results
   end
 end
 
