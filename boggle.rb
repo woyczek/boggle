@@ -28,7 +28,7 @@ class Boggle
       word = w.chomp
       results << word if has_word?(word)
     end
-    results
+    results.group_by(&:length)
   end
 
   private
@@ -69,5 +69,4 @@ class Boggle
 end
 
 b = Boggle.new('gautprmrdolaesic')
-pp b
-p b.solve
+pp b.solve
