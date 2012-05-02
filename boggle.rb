@@ -11,11 +11,11 @@ class Boggle
 
     @board = @raw.chars.each_slice(@side).to_a
 
-    @starts = {}
+    @positions = {}
     @board.each_with_index do |row, i|
       row.each_with_index do |c, j|
-        @starts[c] ||= []
-        @starts[c] << [i, j]
+        @positions[c] ||= []
+        @positions[c] << [i, j]
       end
     end
 
@@ -24,8 +24,8 @@ class Boggle
 
   def solve
     results = []
-    File.new("/usr/share/dict/words", "r").each_line do |w|
-      word = w.chomp
+    File.new("words", "r").each_line do |word|
+      word.chomp!
       results << word if has_word?(word)
     end
     results.group_by(&:length)
@@ -36,7 +36,7 @@ class Boggle
   def has_word?(word)
     return false unless word =~ @possible
 
-    @starts[word[0]].each do |x, y|
+    @positions[word[0]].each do |x, y|
       return true if dfs(word, x, y)
     end
 
@@ -49,16 +49,9 @@ class Boggle
 
     return true if idx == word.length
 
-    x_min = [x-1, 0].max
-    x_max = [x+1, @side-1].min
-    y_min = [y-1, 0].max
-    y_max = [y+1, @side-1].min
-
-    x_min.upto(x_max) do |i|
-      y_min.upto(y_max) do |j|
-        if @board[i][j] == word[idx] && !seen.include?(:"#{i}#{j}")
-          return true if dfs(word, i, j, idx + 1, seen)
-        end
+    @positions[word[idx]].each do |i,j|
+      if (x-i).abs <= 1 && (y-j).abs <= 1 && !seen.include?(:"#{i}#{j}")
+        return true if dfs(word, i, j, idx + 1, seen)
       end
     end
 
@@ -68,5 +61,6 @@ class Boggle
   end
 end
 
+# b = Boggle.new('dsrodgtemensrasitodgntrpreiaestsclpd')
 b = Boggle.new('gautprmrdolaesic')
 pp b.solve
