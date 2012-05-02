@@ -3,7 +3,7 @@ require 'pp'
 class Boggle
   require 'set'
 
-  attr_reader :results
+  attr_reader :words
 
   def self.solve(str)
     new(str).solve
@@ -27,11 +27,11 @@ class Boggle
   end
 
   def solve
-    if !@results
-      @results = []
-      File.new('words', 'r').each_line do |word|
+    if !@words
+      @words = []
+      File.new('/usr/share/dict/words', 'r').each_line do |word|
         word.chomp!
-        @results << word if has_word?(word)
+        @words << word if has_word?(word)
       end
     end
       
@@ -68,4 +68,4 @@ class Boggle
 end
 
 b = Boggle.solve('fxieamloewbxastu')
-pp b.results.group_by(&:length)
+pp b.words.group_by(&:length)
