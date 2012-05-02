@@ -9,14 +9,10 @@ class Boggle
     
     raise "Invalid Board" unless @side ** 2 == @raw.length
 
-    @board = @raw.chars.each_slice(@side).to_a
-
     @positions = {}
-    @board.each_with_index do |row, i|
-      row.each_with_index do |c, j|
-        @positions[c] ||= []
-        @positions[c] << [i, j]
-      end
+    @raw.each_char.with_index do |c, i|
+      @positions[c] ||= []
+      @positions[c] << [i / @side, i % @side]
     end
 
     @possible = Regexp.new("^[#{@raw.split('').uniq!.join}]{3,#{@raw.length}}$")
