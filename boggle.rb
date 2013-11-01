@@ -1,40 +1,41 @@
-require 'pp'
+class Point < Complex
+  class << self
+    alias :new :rectangular
+  end
+end
 
 class Boggle
   require 'set'
 
   attr_reader :words
 
-  def self.solve(str)
-    new(str).solve
-  end
-
-  def initialize(str)
+  def initialize(str, dict = '/usr/share/dict/words')
     @str = str.dup
+    @dict = dict
+
     @side = Math.sqrt(@str.length).round
-    
+
     raise 'Invalid Board' unless @side ** 2 == @str.length
 
-    @positions = {}
+    @positions = Hash.new { |h,k| h[k] = [] }
     @str.each_char.with_index do |c, i|
-      @positions[c] ||= []
-      @positions[c] << [i / @side, i % @side]
+      @positions[c] << Point.new(i / @side, i % @side)
     end
 
     @possible = Regexp.new("^[#{@positions.keys.join}]{3,#{@str.length}}$")
 
-    @seen ||= Set.new
+    @visited ||= Set.new
   end
 
   def solve
     if !@words
       @words = []
-      File.new('/usr/share/dict/words', 'r').each_line do |word|
+      File.new(@dict, 'r').each_line do |word|
         word.chomp!
         @words << word if has_word?(word)
       end
     end
-      
+
     self
   end
 
@@ -43,29 +44,30 @@ class Boggle
   def has_word?(word)
     return false unless word =~ @possible
 
-    @positions[word[0]].each do |x, y|
-      return true if find(word, x, y)
+    @positions[word[0]].each do |position|
+      return true if find(word, position)
     end
 
     false
   end
 
-  def find(word, x, y, idx = 1, seen = @seen.clear)
+  def find(word, position, idx = 1, visited = @visited.clear)
     return true if idx == word.length
 
-    seen << coord = x * @side + y
+    visited << position
 
-    @positions[word[idx]].each do |i, j|
-      if (x-i).abs <= 1 && (y-j).abs <= 1 && !seen.include?(i * @side + j)
-        return true if find(word, i, j, idx + 1, seen)
+    @positions[word[idx]].each do |position2|
+      if (position - position2).abs < 2 && !visited.include?(position2)
+        return true if find(word, position2, idx + 1, visited)
       end
     end
 
-    seen.delete(coord)
+    visited.delete(position)
 
     false
   end
 end
 
-b = Boggle.solve('fxieamloewbxastu')
-pp b.words.group_by(&:length)
+require 'pp'
+
+pp Boggle.new('fxieamloewbxastu').solve.words.group_by(&:length)
