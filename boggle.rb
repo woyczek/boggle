@@ -1,15 +1,47 @@
+#!/usr/bin/env ruby
 class Point < Complex
   class << self
     alias :new :rectangular
   end
 end
 
+@scores = hash.new {
+  "a" => 1,
+  "b" => 3,
+  "c" => 3,
+  "d" => 2,
+  "e" => 1,
+  "f" => 4,
+  "g" => 2,
+  "h" => 4,
+  "i" => 1,
+  "j" => 8,
+  "k" => 10,
+  "l" => 2,
+  "m" => 2,
+  "n" => 2,
+  "o" => 1,
+  "p" => 4,
+  "q" => 8,
+  "r" => 2,
+  "s" => 1,
+  "t" => 1,
+  "u" => 1,
+  "v" => 4,
+  "w" => 10,
+  "x" => 10,
+  "y" => 10,
+  "z" => 10
+}
+
 class Boggle
   require 'set'
 
   attr_reader :words
 
-  def initialize(str, dict = '/usr/share/dict/words')
+  #def initialize(str, dict = '/usr/share/dict/words')
+  def initialize(str, dict = './france2.txt')
+    # Ouverture du dictionnaire
     @str = str.dup
     @dict = dict
 
@@ -69,5 +101,5 @@ class Boggle
 end
 
 require 'pp'
-
-pp Boggle.new('fxieamloewbxastu').solve.words.group_by(&:length)
+#pp Boggle.new('fxieamloewbxastu').solve.words.group_by(&:length)
+pp Boggle.new('cretepoeniaialsurteesaint').solve.words.group_by(&:length)
