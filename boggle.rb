@@ -5,7 +5,7 @@ class Point < Complex
   end
 end
 
-@scores = hash.new {
+@scores = {
   "a" => 1,
   "b" => 3,
   "c" => 3,
@@ -63,7 +63,7 @@ class Boggle
     if !@words
       @words = []
       File.new(@dict, 'r').each_line do |word|
-        word.chomp!
+        word.downcase.chomp!
         @words << word if has_word?(word)
       end
     end
@@ -102,4 +102,10 @@ end
 
 require 'pp'
 #pp Boggle.new('fxieamloewbxastu').solve.words.group_by(&:length)
+#
+board = ARGF.read.dowcase
+puts board
+
+pp Boggle.new(board).solve.words.group_by(&:length)
 pp Boggle.new('cretepoeniaialsurteesaint').solve.words.group_by(&:length)
+pp Boggle.new('crEtepoenIaIaLsurtEesAint').solve.words.group_by(&:length)
