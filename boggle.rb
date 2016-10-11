@@ -1,99 +1,78 @@
 #!/usr/bin/env ruby
-class Point < Complex
-  # Derivee de matrice (2D) aka complexe
-#  def initialize(x,y,score)
-#    @score = score
-#    @point = super(x,y)
-#  end
-
-  #def self.new (x,y,score)
-  #  @score = score
-  #  @point = self.rectangular(x,y)
-  #  self
-  #end
-
-#  alias oldNew new
-  def score
-    @score
-  end
-
-  class << self
-    def score
-      @score
-    end
-
-    def create (complexe,sc=1)
-      @score = sc
-      @c_point=complexe
-      self
-    end
-
-    def new (reel,imag,sc=1)
-      @score = sc
-      @c_point=rectangular(reel,imag)
-      self
-    end
-
-    def to_s(*args)
-      super(*args) + " : " + @score.to_s
-    end
-
-    def to_x(*args)
-      @c_point
-    end
-
-    def -(other)
-      puts @c_point.to_s
-      puts other.to_s
-      result=@c_point-other.to_x
-      Point.create(result,@score)
-    end
-
-    def abs
-      @c_point.abs 
-    end
-
-    def pretty_print(inst)
-      return inst.to_s + " : " + @score.to_s
-    end
-
-  end
-  alias :inspect :to_s
-
-end
 
 MIN_SIZE = 2
 DICO = 'france2.txt'
 #DICO = '/usr/share/dict/words'
 
-@scores = {
-  "a" => 1,
-  "b" => 3,
-  "c" => 3,
-  "d" => 2,
-  "e" => 1,
-  "f" => 4,
-  "g" => 2,
-  "h" => 4,
-  "i" => 1,
-  "j" => 8,
-  "k" => 10,
-  "l" => 2,
-  "m" => 2,
-  "n" => 2,
-  "o" => 1,
-  "p" => 4,
-  "q" => 8,
-  "r" => 2,
-  "s" => 1,
-  "t" => 1,
-  "u" => 1,
-  "v" => 4,
-  "w" => 10,
-  "x" => 10,
-  "y" => 10,
-  "z" => 10
-}
+class Point < Complex
+  class << self
+    alias :new :rectangular
+  end
+end
+
+class Case 
+#class Case < Complex
+
+  def point 
+    @c
+  end
+
+  def pointH
+    @point
+  end
+
+  def valeur
+    @valeur
+  end
+
+  def multi
+    @multi
+  end
+
+  def abs
+    @c.abs
+  end
+
+  def pretty_print(inst)
+    puts "PP"
+    return inst.point.to_s + " : " + inst.valeur.to_s + " x " 
+  end
+
+  def -(arg)
+    @c-arg
+  end
+
+  def initialize(c,valeur,multi)
+    @c=c
+    @point=c
+    @valeur=valeur
+    @multi=multi
+    puts c.to_s + " - " + valeur.to_s + " - " + multi.to_s
+    self
+  end
+
+  def self.c_create(c,valeur,multi)
+    self.new(c,valeur,multi)
+  end
+
+  def self.new(*args,valeur,multi)
+    if args.count > 1 then
+      super(Complex.rect(args[0].to_i,args[1].to_i),valeur,multi)
+    else
+      super(c,valeur,multi)
+    end
+  end
+
+  def self.r_create(x,y,valeur,multi)
+    self.c_create(Complex.rect(x,y),valeur,multi)
+  end
+
+  def pretty_print(inst)
+    puts @point.to_s + " : " + @valeur.to_s + " x " + @multi.to_s
+    return @point.to_s + " : " + @valeur.to_s + " x " + @multi.to_s
+  end
+
+end
 
 class Boggle
   require 'set'
@@ -101,27 +80,53 @@ class Boggle
   attr_reader :words
 
   #def initialize(str, dict = '/usr/share/dict/words')
-  # Parametres : AEIOTESTB, 123456789, DICO.txt
   def initialize(str, score = '' , dict = DICO )
+    @scores = {
+      "a" => 1,
+      "b" => 3,
+      "c" => 3,
+      "d" => 2,
+      "e" => 1,
+      "f" => 4,
+      "g" => 2,
+      "h" => 4,
+      "i" => 1,
+      "j" => 8,
+      "k" => 10,
+      "l" => 2,
+      "m" => 2,
+      "n" => 2,
+      "o" => 1,
+      "p" => 4,
+      "q" => 8,
+      "r" => 2,
+      "s" => 1,
+      "t" => 1,
+      "u" => 1,
+      "v" => 4,
+      "w" => 10,
+      "x" => 10,
+      "y" => 10,
+      "z" => 10
+    }
+
+    #def initialize(str, dict = DICO ) 
     # Ouverture du dictionnaire
     @str = str.dup
-    @dict = dict
-    @score = score
+    @dict = dict.dup
 
     @side = Math.sqrt(@str.length).round
 
     raise 'Invalid Board' unless @side ** 2 == @str.length
 
-    # Matrice carree
     @positions = Hash.new { |h,k| h[k] = [] }
+    @positionsC = Hash.new { |h,k| h[k] = [] }
     @str.each_char.with_index do |c, i|
-      # Creation du point de la matrice de jeu
-      @positions[c] << Point.new(i / @side, i % @side, score)
-      puts @positions
+      @positionsC[c] << Case.new(i / @side, i % @side, @scores[c], score.chars[i])
+      @positions[c] << Point.new(i / @side, i % @side )
     end
 
-    # Tableau des mots possibles : toutes les lettres, entre N et length fois.
-    @possible = Regexp.new("^[#{@positions.keys.join}]{#{MIN_SIZE},#{@str.length}}$")
+    @possible = Regexp.new("^[#{@positionsC.keys.join}]{3,#{@str.length}}$")
 
     @visited ||= Set.new
   end
@@ -129,47 +134,81 @@ class Boggle
   def solve
     if !@words
       @words = []
+      puts @dict
       File.new(@dict, 'r').each_line do |word|
         word.chomp!.downcase
-        @words << word if has_word?(word)
+        local_score = has_word?(word)
+        if local_score != 0
+          @words << word 
+          puts "-- " + word + " : " + local_score.to_s
+        end
       end
     end
 
-    puts 'Fin solve'
     self
   end
 
   private
 
   def has_word?(word)
-    return false unless word =~ @possible
-
-    @positions[word[0]].each do |position|
-      return true if find(word, position)
+    unless word =~ @possible
+      return 0
     end
 
-    false
-  end
+    # pp @positions[word][0]
+    @positionsC[word[0]].each do |position|
+#      pp position
 
-  def find(word, position, idx = 1, visited = @visited.clear)
-    return true if idx == word.length
+    multi=1
+    local_multi=1
+    if position.multi == "D" then
+      multi=multi*2
+    elsif position.multi == "T" then
+      multi=multi*3
+    else
+      local_multi=position.multi
+    end
 
-    visited << position
-
-    @positions[word[idx]].each do |position2|
-#      puts "P:" + position.to_s
-#      puts "P2:" + position2.to_s
-#      puts position.score
-      if (position - position2).abs < 2 && !visited.include?(position2)
-        return true if find(word, position2, idx + 1, visited)
+      if (local_score=find(word, position, position.valeur.to_i * local_multi.to_i, multi )) != 0
+        return local_score
       end
     end
 
+    0
+  end
+
+  def find(word, position, score=0, idx = 1, visited = @visited.clear, multi=1)
+#    pp position
+
+    if idx == word.length
+      return score
+    end
+
+    visited << position
+    #:score = score + @scores[word]
+
+    @positionsC[word[idx]].each do |position2|
+    local_multi=1
+    if position2.multi == "D" then
+      multi=multi*2
+    elsif position2.multi == "T" then
+      multi=multi*3
+    else
+      local_multi=position2.multi.to_i
+    end
+      if (position.point - position2.point).abs < 2 && !visited.include?(position2)
+        if (local_score=find(word, position2, score+position2.valeur.to_i*local_multi.to_i, idx + 1, visited,multi)) != 0
+          puts multi.to_s + " - " + local_multi.to_s
+          return local_score
+        end
+      end
+    end
+
+    #:score = score - @scores[@positions[word][idx]]
     visited.delete(position)
 
-    false
+    0
   end
-  puts 'Fin init class'
 end
 
 require 'pp'
@@ -178,10 +217,16 @@ require 'pp'
 board = ARGV.shift.downcase
 scores = ARGV.shift
 puts board
-      pp Point.new(1,2,4)
-      puts "--- toto"
+#pp Point.new(1,2)
+#
+t=Case.new(1,2,4,5)
+pp t
+puts t.abs
+puts "toto"
 
-pp Boggle.new(board,scores).solve.words.group_by(&:length)
+#pp Boggle.new(board).solve.words.group_by(&:length)
+Boggle.new(board,scores).solve.words.group_by(&:length)
+#pp Boggle.new(board,scores).solve.words.group_by(&:length)
 #pp Boggle.new('cretepoeniaialsurteesaint').solve.words.group_by(&:length)
-#pp Boggle.new('crEtepoenIaIaLsurtEesAint').solve.words.group_by(&:length)
-puts 'Fin finale'
+##pp Boggle.new('crEtepoenIaIaLsurtEesAint').solve.words.group_by(&:length)
+#puts 'Fin finale'
