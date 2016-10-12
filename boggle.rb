@@ -118,7 +118,7 @@ class Boggle
     end
     @fra = {
       "a" => 1,  "b" => 4,  "c" => 4,  "d" => 5,  "e" => 1,
-      "f" => 4,  "g" => 3,  "h" => 4,  "i" => 1,  "j" => 8,
+      "f" => 5,  "g" => 3,  "h" => 4,  "i" => 1,  "j" => 8,
       "k" => 10, "l" => 2,  "m" => 3,  "n" => 2,  "o" => 1,
       "p" => 4,  "q" => 8,  "r" => 2,  "s" => 1,  "t" => 1,
       "u" => 1,  "v" => 5,  "w" => 10, "x" => 10, "y" => 10,
@@ -350,6 +350,8 @@ end
 board = ARGV.shift.downcase.tr('.-/@+_()=','')
 scores = ARGV.shift.tr('.-/@+_()=','')
 
+puts "Boggle solver -- v2016.2"
+
 word=""
 lang=DEFLANG
 
@@ -361,10 +363,10 @@ while ARGV.size > 0 do
   end
   if (arg == "-w") || (arg == "--word")
     action="word"
-    word=ARGV.shift.dup
+    word=ARGV.shift.to_s
   end
   if (arg == "-l") || (arg == "--lang")
-    lang=ARGV.shift
+    lang=ARGV.shift.to_s
   end
 end
 
@@ -381,3 +383,4 @@ else
   arr.push(*grille.show_longuest(10))
   Boggle.display_words(arr.sort { |a,b| a[1] <=> b[1] })
 end
+puts ""
