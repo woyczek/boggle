@@ -40,20 +40,21 @@ end
 class Case 
 #class Case < Complex
 
+  attr_accessor :visited 
+  attr_accessor :valeur 
+  attr_accessor :multi
+  attr_accessor :numorder
+
+  def visited
+    @visited=true
+  end
+
   def point 
     @c
   end
 
   def pointH
     @point
-  end
-
-  def valeur
-    @valeur
-  end
-
-  def multi
-    @multi
   end
 
   def abs
@@ -69,33 +70,36 @@ class Case
     @c-arg
   end
 
-  def initialize(c,valeur,multi)
+  def initialize(c,valeur,multi,numorder=0)
+    @multi=1
+    @valeur=1
+    @numorder=numorder
     @c=c
     @point=c
-    @valeur=valeur
-    @multi=multi
+    @valeur=valeur unless (valeur==nil || valeur=='')
+    @multi=multi unless (multi==nil || multi=='')
 #    puts c.to_s + " - " + valeur.to_s + " - " + multi.to_s
     self
   end
 
-  def self.c_create(c,valeur,multi)
+  def self.c_create(c,valeur,multi,numorder)
     self.new(c,valeur,multi)
   end
 
-  def self.new(*args,valeur,multi)
+  def self.new(*args,valeur,multi,numorder)
     if args.count > 1 then
-      super(Complex.rect(args[0].to_i,args[1].to_i),valeur,multi)
+      super(Complex.rect(args[0].to_i,args[1].to_i),valeur,multi,numorder)
     else
-      super(c,valeur,multi)
+      super(c,valeur,multi,numorder)
     end
   end
 
-  def self.r_create(x,y,valeur,multi)
-    self.c_create(Complex.rect(x,y),valeur,multi)
+  def self.r_create(x,y,valeur,multi,numorder)
+    self.c_create(Complex.rect(x,y),valeur,multi,numorder)
   end
 
   def pretty_print(inst)
-    puts @point.to_s + " : " + @valeur.to_s + " x " + @multi.to_s
+    puts @numorder.to_s + " " + @point.to_s + " : " + @valeur.to_s + " x " + @multi.to_s + ( @visited ? " V" : " -")
     return @point.to_s + " : " + @valeur.to_s + " x " + @multi.to_s
   end
 
@@ -145,13 +149,14 @@ class Boggle
     @positions = Hash.new { |h,k| h[k] = [] }
     @positionsC = Hash.new { |h,k| h[k] = [] }
     @str.each_char.with_index do |c, i|
-      @positionsC[c] << Case.new(i / @side, i % @side, @scores[c], score.chars[i])
+      @positionsC[c] << Case.new(i / @side, i % @side, @scores[c], score.chars[i], i)
       @positions[c] << Point.new(i / @side, i % @side )
     end
 
     @possible = Regexp.new("^[#{@positionsC.keys.join}]{3,#{@str.length}}$")
 
     @visited ||= Set.new
+    @v_cells ||= Array.new
     self
   end
 
@@ -160,10 +165,11 @@ class Boggle
       @words = []
       #puts @dict
       if word != "" then
-        search_for_word(word)
+        #puts word
+        search_for_word(word,display)
       else
         File.new(@dict, 'r').each_line do |word|
-          search_for_word(word)
+          search_for_word(word,display)
         end
       end
     end
@@ -171,48 +177,64 @@ class Boggle
     self
   end
 
-  def show_grid
-    # Displays grid
+  def show_grid(word='')
+  #  require 'pp'
+    # Displays grid, with the first found word if any
     @rows = Array.new
     rownum = 0
     row = ""
     r = 0
     @str.each_char.with_index do |c, i|
-      # divide total positions by side
-      s = "["
-      if @score_str[i].to_i > 0 then
-        if @score_str[i].to_i > 1 then
-          s = s + "33m"
+  #  @positionsC.each do |pos|
+  #    c=pos[0]
+  #    pos[1].each do |p|
+  #      pp p
+  #      i=p.numorder
+        # divide total positions by side
+        s = " [2;"
+        b='44;' if @v_cells[i]
+        b='40;' unless @v_cells[i]
+        if @score_str[i].to_i > 0 then
+          if @score_str[i].to_i > 1 then
+            f="33;"
+            s = s + b + "5;" + f + "m"
+          else
+            f="37;"
+            s = s + b + "5;" + f + "m"
+          end
+          s = s +(@score_str[i].to_i * @scores[c].to_i ).to_s.rjust(2)
         else
-          s = s + "37m"
+          if @score_str[i].downcase == "d" then
+            f="31;"
+            s = s + "0;" + b + f + "m"
+          elsif @score_str[i].downcase == "t" then
+            f="32;"
+            s = s + "0;" + b + f + "m"
+          elsif @score_str[i].downcase == "b" then
+            f="35;"
+            s = s + "0;" + b + f + "m"
+          end
+          s = s + @scores[c].to_s.rjust(2)
         end
-        s = s + " "+(@score_str[i].to_i * @scores[c] ).to_s.rjust(2)
-      else
-        if @score_str[i].downcase == "d" then
-          s = s + "31m"
-        elsif @score_str[i].downcase == "t" then
-          s = s + "32m"
-        elsif @score_str[i].downcase == "b" then
-          s = s + "35m"
+        row = row + s + "[0;" + b + f + "1m" + c.upcase + "[0m"
+        # If next position is on next row, 
+        r = (i+1) / @side
+        if r != rownum then
+          @rows[ r ] = row
+          row = ""
+          rownum = r
         end
-        s = s + " " + @scores[c].to_s.rjust(2)
-      end
-      row = row + s + "[1m" + c.upcase + "[0m"
-      # If next position is on next row, 
-      r = (i+1) / @side
-      if r != rownum then
-        @rows[ r ] = row
-        row = ""
-        rownum = r
-      end
+  #    end
     end
     #puts DICO
     @rows.each do | s |
       puts s
     end
+    show_best(1) if defined?(@words)
   end
 
   def Boggle.display_words(arr)
+    # Display an array of word/size/score
     arr.each do | w |
       puts w[1].to_s + " : " + w[0] + " " + w[0].length.to_s 
     end
@@ -244,7 +266,11 @@ class Boggle
       # Switch cell bonus into word/letter multiplier
       l_multi=1
       w_multi=1
-      if position.multi == "D" then
+      if position.multi == "" then
+        l_multi=1
+      elsif position.multi == nil then
+        l_multi=1
+      elsif position.multi == "D" then
         l_multi=w_multi*2
       elsif position.multi == "T" then
         l_multi=w_multi*3
@@ -253,6 +279,7 @@ class Boggle
       else
         l_multi=position.multi.to_i
       end
+      #l_multi=1 if l_multi<1
 
       # if a word is found, return the word score
       if (local_score=find(word, position, position.valeur.to_i * l_multi, 1 , @visited.clear, w_multi)) != 0
@@ -266,8 +293,9 @@ class Boggle
 
   def search_for_word(word,display=false)
     # Search for a word in the tree, and display if needed
+      #puts word
     if @words then
-      word.chomp!.downcase
+      word=word.chomp.downcase
       local_score = has_word?(word)
       if local_score != 0
         @words << [ word, local_score ]
@@ -281,6 +309,10 @@ class Boggle
 
     if idx == word.length
       # Word is found. The score is multiplied by word multiplier.
+      visited.each do |v|
+        @v_cells[v.numorder]=true
+      end
+      @v_cells[position.numorder]=true
       return score * w_multi_local
     end
 
@@ -329,20 +361,20 @@ while ARGV.size > 0 do
   end
   if (arg == "-w") || (arg == "--word")
     action="word"
-    word=ARGV.shift
+    word=ARGV.shift.dup
   end
   if (arg == "-l") || (arg == "--lang")
     lang=ARGV.shift
   end
 end
 
-grille = Boggle.new(board,scores)
+grille = Boggle.new(board,scores,"",lang)
 
 if action == "grid" then
   grille.show_grid
 elsif word != ""
-  grille.solve(false,word)
-  arr=grille.show_best(10)
+  grille.solve(true,word)
+  grille.show_grid(word)
 else
   grille.solve(false)
   arr=grille.show_best(10)
