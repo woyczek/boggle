@@ -1,22 +1,27 @@
-A simple boggle solver written in Ruby for fun. It generates a random board and then prints out solutions.
+Dictionnaries from :
+English :
+twl06.txt 
+Francais :
+http://www.pallier.org/ressources/dicofr/liste.de.mots.francais.frgut.txt
 
-## Usage
+#
+# SPECS
+#
+# script_name.rb <grid> <bonus> [-g|--grid] [-w|--word WORD] [-l|--lang LANG]
+#
+# grid is a square grid transformed in string of letters. It may include any char from [.-_()+@/]
+#   --> It will be verified nxn sized.
+#   aeio | ae.io | (ae)(io) | ae_io
+#
+#
+# bonus is a square grid transformed in string. It may include any char from [.-_()+@/]
+#   --> It will be verified nxn sized but by "grid" method
+#   1113 | 11.13 | 1.13.1
+#   Bonus may be n, T, D, B for "n x letter value", "triple word", "double word", "bonus word"
+#
+# -g|--grid displays the grid, but dont solve it
+#
+# -w|--word word displays the word on the grid
+#
+# -l|--lang changes the dictionnary and the scoring matrix curently (fr|en)
 
-First you need to install the `fast_trie` gem:
-
-    $ gem install fast_trie
-
-Then run the solver:
-
-    $ ruby solver.rb --random
-
-This generates a random board and solves it. You can also input the board from stdin or a file:
-
-    $ ruby solver.rb
-    T  L  T  P
-    N  E  N  G
-    T  N  O  A
-    B  I  S  A
-    <C-d>
-
-    $ ruby solver.rb your_board.txt
