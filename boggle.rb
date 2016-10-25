@@ -9,26 +9,30 @@ FRA = 'france2.txt'
 #DICO = '/usr/share/dict/words'
 DICO=FRA
 
+def help
 #
 # SPECS
 #
-# script_name.rb <grid> <bonus> [-g|--grid] [-w|--word WORD] [-l|--lang LANG]
-#
-# grid is a square grid transformed in string of letters. It may include any char from [.-_()+@/]
-#   --> It will be verified nxn sized.
-#   aeio | ae.io | (ae)(io) | ae_io 
-#
-#
-# bonus is a square grid transformed in string. It may include any char from [.-_()+@/]
-#   --> It will be verified nxn sized but by "grid" method
-#   1113 | 11.13 | 1.13.1 
-#   Bonus may be n, T, D, B for "n x letter value", "triple word", "double word", "bonus word"
-#   
-# -g|--grid displays the grid, but dont solve it
-#
-# -w|--word word displays the word on the grid
-#
-# -l|--lang changes the dictionnary and the scoring matrix curently (fr|en)
+print '
+script_name.rb <grid> <bonus> [-g|--grid] [-w|--word WORD] [-l|--lang LANG]
+
+grid is a square grid transformed in string of letters. It may include any char from [.-_()+@/]
+  --> It will be verified nxn sized.
+  aeio | ae.io | (ae)(io) | ae_io 
+
+
+bonus is a square grid transformed in string. It may include any char from [.-_()+@/]
+  --> It will be verified nxn sized but by "grid" method
+  1113 | 11.13 | 1.13.1 
+  Bonus may be n, T, D, B for "n x letter value", "triple word", "double word", "bonus word"
+  
+-g|--grid displays the grid, but dont solve it
+
+-w|--word word displays the word on the grid
+
+-l|--lang changes the dictionnary and the scoring matrix curently (fr|en)
+'
+end
 
 
 class Point < Complex
@@ -347,40 +351,54 @@ class Boggle
 
 end
 
-board = ARGV.shift.downcase.tr('.-/@+_()=','')
-scores = ARGV.shift.tr('.-/@+_()=','')
+board = ""
+scores = ""
 
 puts "Boggle solver -- v2016.2"
 
 word=""
 lang=DEFLANG
 
+begin
 # Options parser
-while ARGV.size > 0 do
-  arg=ARGV.shift
-  if (arg == "-g") || (arg == "--grid")
-    action="grid"
+  while ARGV.size > 0 do
+    arg=ARGV.shift
+    if (arg == "-g") || (arg == "--grid")
+      action="grid"
+    elsif (arg == "-w") || (arg == "--word")
+      action="word"
+      word=ARGV.shift.to_s
+    elsif (arg == "-l") || (arg == "--lang")
+      lang=ARGV.shift.to_s
+    elsif arg =~ /^[a-z]+$/i    ################# BOARD
+      puts arg
+      board = arg.downcase.tr('.-/@+_()=','')
+      scores = scores.ljust(board.size,'1')
+    elsif arg =~ /^[0-9dt]+$/i  ################# SCORES
+      scores = arg.tr('.-/@+_()=','').ljust(board.size,'1')
+    else
+      raise "Invalid parameter #{arg}"
+    end
   end
-  if (arg == "-w") || (arg == "--word")
-    action="word"
-    word=ARGV.shift.to_s
-  end
-  if (arg == "-l") || (arg == "--lang")
-    lang=ARGV.shift.to_s
-  end
-end
 
-grille = Boggle.new(board,scores,"",lang)
+  raise "Invalid empty board" if board == ''
 
-if action == "grid" then
-  grille.show_grid
-elsif word != ""
-  grille.solve(true,word)
-  grille.show_grid(word)
-else
-  grille.solve(false)
-  arr=grille.show_best(10)
-  arr.push(*grille.show_longuest(10))
-  Boggle.display_words(arr.sort { |a,b| a[1] <=> b[1] })
+  grille = Boggle.new(board,scores,"",lang)
+
+  if action == "grid" then
+    puts "GRILLE"
+    grille.show_grid
+  elsif word != ""
+    grille.solve(true,word)
+    grille.show_grid(word)
+  else
+    grille.solve(false)
+    arr=grille.show_best(10)
+    arr.push(*grille.show_longuest(10))
+    Boggle.display_words(arr.sort { |a,b| a[1] <=> b[1] })
+  end
+  puts ""
+rescue Exception => e
+  help
+  raise e
 end
-puts ""
