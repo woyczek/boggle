@@ -133,7 +133,7 @@ class Boggle
       "f" => 4,  "g" => 2,  "h" => 5,  "i" => 1,  "j" => 8,
       "k" => 6,  "l" => 2,  "m" => 2,  "n" => 2,  "o" => 2,
       "p" => 4,  "q" => 8,  "r" => 2,  "s" => 2,  "t" => 2,
-      "u" => 1,  "v" => 4,  "w" => 5,  "x" => 5,  "y" => 5,
+      "u" => 2,  "v" => 4,  "w" => 5,  "x" => 5,  "y" => 5,
       "z" => 5 
     }
     @scores=@fra if lang == "fr"
@@ -370,11 +370,11 @@ begin
       word=ARGV.shift.to_s
     elsif (arg == "-l") || (arg == "--lang")
       lang=ARGV.shift.to_s
-    elsif arg =~ /^[a-z]+$/i    ################# BOARD
+    elsif arg =~ /^[a-z.-\/@+_()=]+$/i    ################# BOARD
       puts arg
       board = arg.downcase.tr('.-/@+_()=','')
       scores = scores.ljust(board.size,'1')
-    elsif arg =~ /^[0-9dt]+$/i  ################# SCORES
+    elsif arg =~ /^[0-9dt.-\/@+_()=]+$/i  ################# SCORES
       scores = arg.tr('.-/@+_()=','').ljust(board.size,'1')
     else
       raise "Invalid parameter #{arg}"
